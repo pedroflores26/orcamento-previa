@@ -36,8 +36,20 @@
     <span class="nav-icon">📄</span><span>Orçamentos</span>
   </a>
   
+  <a href="faturas.php" class="nav-item <?= ($pagina==='faturas')?'active':'' ?>">
+  <span class="nav-icon">🧾</span><span>Faturas</span>
+</a>
+
   <a href="ordens.php" class="nav-item <?= ($pagina==='ordens')?'active':'' ?>">
   <span class="nav-icon">🔧</span><span>Ordens de Serviço</span>
+</a>
+
+<a href="clientes_rentabilidade.php" class="nav-item <?= ($pagina==='clientes_rentabilidade')?'active':'' ?>">
+  <span class="nav-icon">💰</span><span>Rentabilidade</span>
+</a>
+
+<a href="custos.php" class="nav-item <?= ($pagina==='custos')?'active':'' ?>">
+  <span class="nav-icon">💸</span><span>Custos / Lucro</span>
 </a>
 
   <div class="sidebar-footer">MP Reparos Automotivos</div>

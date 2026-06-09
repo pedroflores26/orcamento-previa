@@ -6,14 +6,20 @@ $subtitulo = 'Ranking mensal e média anual';
 require_once 'config/db.php';
 $db = getDB();
 
-$ano = isset($_GET['ano']) ? (int)$_GET['ano'] : date('Y');
-$mes = isset($_GET['mes']) ? (int)$_GET['mes'] : date('m');
+$ano = isset($_GET['ano']) ? (int)$_GET['ano'] : (int)date('Y');
+$mes = isset($_GET['mes']) ? (int)$_GET['mes'] : (int)date('m');
+
+if ($mes < 1 || $mes > 12) {
+  $mes = (int)date('m');
+}
 
 $meses = [
   1=>'Janeiro',2=>'Fevereiro',3=>'Março',4=>'Abril',
   5=>'Maio',6=>'Junho',7=>'Julho',8=>'Agosto',
   9=>'Setembro',10=>'Outubro',11=>'Novembro',12=>'Dezembro'
 ];
+
+$nomeMes = $meses[(int)$mes] ?? 'Mês inválido';
 
 function moeda($v){
   return 'R$ ' . number_format((float)$v, 2, ',', '.');
@@ -25,20 +31,23 @@ $fimMes = date('Y-m-t', strtotime($inicioMes));
 $sqlMes = "
 SELECT
   c.id,
-  c.nome,
+  COALESCE(c.nome, 'Cliente não informado') AS nome,
   COUNT(o.id) AS qtd_orcamentos,
   COUNT(DISTINCT o.veiculo_id) AS qtd_veiculos,
   COALESCE(SUM(o.total),0) AS total_mes,
   COALESCE(AVG(o.total),0) AS ticket_medio
 FROM orcamentos o
 LEFT JOIN clientes c ON c.id = o.cliente_id
-WHERE o.data_emissao BETWEEN '$inicioMes' AND '$fimMes'
-AND o.status <> 'Cancelado'
+WHERE o.data_emissao BETWEEN ? AND ?
+AND (o.status IS NULL OR o.status <> 'Cancelado')
 GROUP BY c.id, c.nome
 ORDER BY total_mes DESC
 ";
 
-$rankingMes = $db->query($sqlMes);
+$stmtMes = $db->prepare($sqlMes);
+$stmtMes->bind_param('ss', $inicioMes, $fimMes);
+$stmtMes->execute();
+$rankingMes = $stmtMes->get_result();
 
 $sqlResumo = "
 SELECT
@@ -46,15 +55,18 @@ SELECT
   COUNT(o.id) AS qtd_ano,
   COALESCE(AVG(o.total),0) AS ticket_ano
 FROM orcamentos o
-WHERE YEAR(o.data_emissao) = $ano
-AND o.status <> 'Cancelado'
+WHERE YEAR(o.data_emissao) = ?
+AND (o.status IS NULL OR o.status <> 'Cancelado')
 ";
 
-$resumo = $db->query($sqlResumo)->fetch_assoc();
+$stmtResumo = $db->prepare($sqlResumo);
+$stmtResumo->bind_param('i', $ano);
+$stmtResumo->execute();
+$resumo = $stmtResumo->get_result()->fetch_assoc();
 
 $sqlAnual = "
 SELECT
-  c.nome,
+  COALESCE(c.nome, 'Cliente não informado') AS nome,
   COUNT(o.id) AS qtd_orcamentos,
   COUNT(DISTINCT o.veiculo_id) AS qtd_veiculos,
   COALESCE(SUM(o.total),0) AS total_ano,
@@ -62,14 +74,17 @@ SELECT
   COALESCE(AVG(o.total),0) AS ticket_medio
 FROM orcamentos o
 LEFT JOIN clientes c ON c.id = o.cliente_id
-WHERE YEAR(o.data_emissao) = $ano
-AND o.status <> 'Cancelado'
+WHERE YEAR(o.data_emissao) = ?
+AND (o.status IS NULL OR o.status <> 'Cancelado')
 GROUP BY c.id, c.nome
 ORDER BY total_ano DESC
 LIMIT 20
 ";
 
-$rankingAnual = $db->query($sqlAnual);
+$stmtAnual = $db->prepare($sqlAnual);
+$stmtAnual->bind_param('i', $ano);
+$stmtAnual->execute();
+$rankingAnual = $stmtAnual->get_result();
 
 include 'includes/topo.php';
 ?>
@@ -109,22 +124,22 @@ include 'includes/topo.php';
 <div class="stats-grid">
   <div class="stat-card">
     <div class="stat-label">Faturamento do Ano</div>
-    <div class="stat-val green"><?= moeda($resumo['total_ano']) ?></div>
+    <div class="stat-val green"><?= moeda($resumo['total_ano'] ?? 0) ?></div>
   </div>
 
   <div class="stat-card">
     <div class="stat-label">Média Mensal do Ano</div>
-    <div class="stat-val orange"><?= moeda($resumo['total_ano'] / 12) ?></div>
+    <div class="stat-val orange"><?= moeda(($resumo['total_ano'] ?? 0) / 12) ?></div>
   </div>
 
   <div class="stat-card">
     <div class="stat-label">Orçamentos no Ano</div>
-    <div class="stat-val blue"><?= $resumo['qtd_ano'] ?></div>
+    <div class="stat-val blue"><?= (int)($resumo['qtd_ano'] ?? 0) ?></div>
   </div>
 
   <div class="stat-card">
     <div class="stat-label">Ticket Médio Geral</div>
-    <div class="stat-val"><?= moeda($resumo['ticket_ano']) ?></div>
+    <div class="stat-val"><?= moeda($resumo['ticket_ano'] ?? 0) ?></div>
   </div>
 </div>
 
@@ -132,7 +147,7 @@ include 'includes/topo.php';
   <div class="card-header">
     <div class="card-header-left">
       <div class="card-icon">🏆</div>
-      <div class="card-title">Quem mais rendeu em <?= $meses[$mes] ?> de <?= $ano ?></div>
+      <div class="card-title">Quem mais rendeu em <?= htmlspecialchars($nomeMes) ?> de <?= $ano ?></div>
     </div>
   </div>
 
@@ -163,8 +178,8 @@ include 'includes/topo.php';
             <tr>
               <td><strong>#<?= $pos++ ?></strong></td>
               <td><strong><?= htmlspecialchars($r['nome'] ?: 'Cliente não informado') ?></strong></td>
-              <td><?= $r['qtd_veiculos'] ?></td>
-              <td><?= $r['qtd_orcamentos'] ?></td>
+              <td><?= (int)$r['qtd_veiculos'] ?></td>
+              <td><?= (int)$r['qtd_orcamentos'] ?></td>
               <td><strong style="color:var(--green);"><?= moeda($r['total_mes']) ?></strong></td>
               <td><?= moeda($r['ticket_medio']) ?></td>
             </tr>
@@ -198,11 +213,19 @@ include 'includes/topo.php';
         </thead>
 
         <tbody>
+          <?php if($rankingAnual->num_rows == 0): ?>
+            <tr>
+              <td colspan="6" style="text-align:center;padding:25px;color:var(--g400);">
+                Nenhum faturamento encontrado neste ano.
+              </td>
+            </tr>
+          <?php endif; ?>
+
           <?php while($r = $rankingAnual->fetch_assoc()): ?>
             <tr>
               <td><strong><?= htmlspecialchars($r['nome'] ?: 'Cliente não informado') ?></strong></td>
-              <td><?= $r['qtd_veiculos'] ?></td>
-              <td><?= $r['qtd_orcamentos'] ?></td>
+              <td><?= (int)$r['qtd_veiculos'] ?></td>
+              <td><?= (int)$r['qtd_orcamentos'] ?></td>
               <td><strong style="color:var(--green);"><?= moeda($r['total_ano']) ?></strong></td>
               <td><?= moeda($r['media_mensal']) ?></td>
               <td><?= moeda($r['ticket_medio']) ?></td>

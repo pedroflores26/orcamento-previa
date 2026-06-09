@@ -52,8 +52,9 @@ include 'includes/topo.php';
           <div>
             <div class="hero-nome">MP Reparos Automotivos</div>
             <div class="hero-info">
-              📍 Rua das Oficinas, 100 — Centro, Esteio — RS<br>
-              📞 (51) 99999-0000 &nbsp;|&nbsp; ✉ mpreparos@email.com
+             📍 Avenida Luiz Pasteur, 1555 — Tamandaré, Esteio — RS<br>
+        📞 (51) 994037229 &nbsp;|&nbsp; ✉ mpautomotivos@gmail.com<br>
+        CNPJ: 36.454.523/0001-55
             </div>
           </div>
         </div>
@@ -261,6 +262,22 @@ include 'includes/topo.php';
 </div>
 
 <style>
+  :root{
+  --bg:#0b0b0c;
+  --card:#111214;
+  --card2:#17181c;
+
+  --red:#ff1e1e;
+  --red-dark:#c11212;
+  --red-light:#ff4d4d;
+
+  --text:#f8fafc;
+  --muted:#9ca3af;
+
+  --border:#2a2c31;
+
+  --shadow:0 10px 30px rgba(255,0,0,.12);
+}
 .orc-section{
   background:white;
   border:1px solid var(--g200);

@@ -301,6 +301,7 @@ table.itens td input:focus, table.itens td select:focus {
 .toast.ok  { background: var(--green); }
 .toast.err { background: var(--red);   }
 
+
 /* ── Print ── */
 @media print {
   .sidebar, .topbar, .btn, .btn-group, .modal-overlay { display: none !important; }

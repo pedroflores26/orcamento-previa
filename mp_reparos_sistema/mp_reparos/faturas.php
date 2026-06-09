@@ -142,43 +142,108 @@ include 'includes/topo.php';
 .fatura-orc-list{
   display:grid;
   grid-template-columns:1fr;
-  gap:8px;
+  gap:12px;
 }
 
 .fatura-orc-item{
   display:flex;
   align-items:center;
   justify-content:space-between;
-  gap:12px;
-  border:1px solid var(--g200);
-  background:var(--g50);
-  border-radius:10px;
-  padding:12px;
+  gap:14px;
+
+  background:linear-gradient(180deg,#17181c,#101114);
+
+  border:1px solid #2a2d34;
+  border-radius:16px;
+
+  padding:16px;
+
+  box-shadow:
+    0 8px 24px rgba(0,0,0,.25),
+    0 0 18px rgba(255,0,0,.05);
+
+  transition:.18s;
+}
+
+.fatura-orc-item:hover{
+  transform:translateY(-2px);
+
+  border-color:#ff2d2d;
+
+  box-shadow:
+    0 10px 28px rgba(0,0,0,.35),
+    0 0 22px rgba(255,0,0,.12);
 }
 
 .fatura-orc-title{
-  font-weight:800;
-  color:var(--g800);
+  font-weight:900;
+  color:#ffffff;
+  font-size:15px;
+  letter-spacing:.02em;
 }
 
 .fatura-orc-sub{
   font-size:12px;
-  color:var(--g500);
-  margin-top:2px;
+  color:#9ca3af;
+  margin-top:4px;
+  line-height:1.5;
 }
 
 .fatura-orc-valor{
-  font-size:16px;
+  font-size:20px;
   font-weight:900;
-  color:var(--green);
+
+  background:linear-gradient(135deg,#ff3b3b,#b30000);
+
+  -webkit-background-clip:text;
+  -webkit-text-fill-color:transparent;
+
   white-space:nowrap;
 }
 
 .fat-row-input{
   width:100%;
-  border:1px solid var(--g200);
-  border-radius:6px;
-  padding:7px;
+
+  background:#0f1012;
+
+  border:1.5px solid #2a2d34;
+
+  color:#ffffff;
+
+  border-radius:10px;
+
+  padding:10px 12px;
+
+  transition:.15s;
+}
+
+.fat-row-input:focus{
+  outline:none;
+
+  border-color:#ff2d2d;
+
+  box-shadow:0 0 0 4px rgba(255,0,0,.14);
+}
+
+/* CHECKBOX */
+.fatura-orc-item input[type="checkbox"]{
+  width:18px;
+  height:18px;
+  accent-color:#ff2020;
+}
+
+/* RESPONSIVO */
+@media(max-width:700px){
+
+  .fatura-orc-item{
+    flex-direction:column;
+    align-items:flex-start;
+  }
+
+  .fatura-orc-valor{
+    font-size:18px;
+  }
+
 }
 </style>
 
